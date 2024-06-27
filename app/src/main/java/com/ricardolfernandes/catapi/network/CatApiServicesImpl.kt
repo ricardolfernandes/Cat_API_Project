@@ -8,11 +8,10 @@ class CatApiServicesImpl: CatApiRepository {
 
     override suspend fun getCatBreedsList(
         pageLimit: Int,
-        pageNumber: Int,
-        hasBreeds: Boolean
-    ): List<CatBreedsDTO> {
+        pageNumber: Int
+    ): List<CatBreedDTO> {
         return try {
-            val response = catApiServices.getCatBreedsList(pageLimit, pageNumber, false).awaitResponse()
+            val response = catApiServices.getCatBreedsList(pageLimit, pageNumber, 1).awaitResponse()
             if (response.isSuccessful) {
                 response.body() ?: emptyList()
             } else {
@@ -24,7 +23,7 @@ class CatApiServicesImpl: CatApiRepository {
         }
     }
 
-    override suspend fun getCatBreedDetails(id: String): CatBreedDetailsDTO? {
+    override suspend fun getCatBreedDetails(id: String): CatBreedsDetailsDTO? {
         return try {
             val response = catApiServices.getCatBreedDetails(id).awaitResponse()
             if (response.isSuccessful) {

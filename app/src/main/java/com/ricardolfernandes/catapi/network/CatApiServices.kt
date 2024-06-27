@@ -7,8 +7,12 @@ import retrofit2.http.Query
 
 interface CatApiServices {
     @GET("images/search")
-    suspend fun getCatBreedsList(@Query("limit") pageLimit: Int, @Query("page") pageNumber: Int, @Query("has_breeds") hasBreeds: Boolean): Call<List<CatBreedsDTO>>
+    fun getCatBreedsList(
+        @Query("limit") pageLimit: Int,
+        @Query("page") pageNumber: Int,
+        @Query("has_breeds") hasBreeds: Int
+    ): Call<List<CatBreedDTO>>
 
     @GET("images/{id}")
-    suspend fun getCatBreedDetails(@Path("id") id: String): Call<CatBreedDetailsDTO>
+    fun getCatBreedDetails(@Path("id") id: String): Call<CatBreedsDetailsDTO>
 }
