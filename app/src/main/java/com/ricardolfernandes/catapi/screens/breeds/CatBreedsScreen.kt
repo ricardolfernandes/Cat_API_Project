@@ -17,14 +17,16 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
-import com.ricardolfernandes.catapi.ui.theme.CatAPIProjectTheme
+import com.google.gson.Gson
+import com.ricardolfernandes.catapi.navigation.NavigationItem
+import com.ricardolfernandes.catapi.network.CatBreedsDetailsDTO
 
 @Composable
-fun CatBreedScreen(modifier: Modifier) {
+fun CatBreedScreen(navController: NavController, modifier: Modifier) {
     val viewModel = CatBreedsViewModel()
     val breedsDetails by viewModel.breedsDetails.collectAsState()
 
@@ -33,7 +35,7 @@ fun CatBreedScreen(modifier: Modifier) {
         modifier = modifier
     ) {
         items(breedsDetails) { breedDetails ->
-            CatBreedItem(breedDetails.breeds[0].name, breedDetails.url, modifier)
+            CatBreedItem(breedDetails, modifier, navController)
         }
     }
 
@@ -44,36 +46,37 @@ fun CatBreedScreen(modifier: Modifier) {
 
 @OptIn(ExperimentalGlideComposeApi::class)
 @Composable
-fun CatBreedItem(breedName: String, breedImageUrl: String, modifier: Modifier) {
+fun CatBreedItem(
+    breedDetails: CatBreedsDetailsDTO,
+    modifier: Modifier,
+    navController: NavController
+) {
     Card(onClick = {
-        // TODO -> go to details screen
+        val _breedDetails = Gson().toJson(breedDetails)
+        navController.navigate(NavigationItem.Details.route + "?details=${_breedDetails}")
     },
         modifier = modifier.padding(4.dp, 0.dp)) {
-        Icon(Icons.Outlined.Favorite, contentDescription = "fav icon outlined", modifier = Modifier.align(Alignment.End).padding(6.dp))
+        Icon(Icons.Outlined.Favorite, contentDescription = "fav icon outlined", modifier = Modifier
+            .align(Alignment.End)
+            .padding(6.dp))
         //TODO -> logic to handle favourites
         //Icon(Icons.Default.FavoriteBorder, contentDescription = "fav icon outlined", modifier = Modifier.align(Alignment.End).padding(6.dp))
         GlideImage(
-            model =  breedImageUrl,
+            model =  breedDetails.url,
             contentDescription = "cat",
             modifier = Modifier
                 .padding(16.dp, 0.dp)
                 .size(100.dp),
             contentScale = ContentScale.Fit
         )
-        Text(
-            text = breedName,
-            modifier = Modifier
-                .padding(16.dp, 0.dp)
-                .align(Alignment.CenterHorizontally)
-        )
+        breedDetails.breeds?.get(0)?.name?.let {
+            Text(
+                text = it,
+                modifier = Modifier
+                    .padding(16.dp, 0.dp)
+                    .align(Alignment.CenterHorizontally)
+            )
+        }
 
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    CatAPIProjectTheme {
-        CatBreedItem("Test breed", "https://media.istockphoto.com/id/1443562748/photo/cute-ginger-cat.jpg?s=612x612&w=0&k=20&c=vvM97wWz-hMj7DLzfpYRmY2VswTqcFEKkC437hxm3Cg=", modifier = Modifier.padding(16.dp))
     }
 }
