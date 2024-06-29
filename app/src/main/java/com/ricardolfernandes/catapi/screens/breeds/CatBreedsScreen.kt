@@ -34,12 +34,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import com.google.gson.Gson
+import com.ricardolfernandes.catapi.R
 import com.ricardolfernandes.catapi.database.CatBreed
 import com.ricardolfernandes.catapi.navigation.NavigationItem
 import com.ricardolfernandes.catapi.network.CatBreedsDetailsDTO
@@ -68,7 +70,7 @@ fun CatBreedScreen(viewModel: CatBreedsViewModel, navController: NavController, 
                         verticalArrangement = Arrangement.Center,
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Text("No data to be displayed yet, connect to Internet and try again!", style = MaterialTheme.typography.headlineSmall)
+                        Text(stringResource(R.string.empty_data_list), style = MaterialTheme.typography.headlineSmall)
                     }
                 } else {
                     OutlinedTextField(
@@ -76,13 +78,15 @@ fun CatBreedScreen(viewModel: CatBreedsViewModel, navController: NavController, 
                         onValueChange = {
                             searchText = it
                         },
-                        label = { Text("Search") },
+                        label = { Text(stringResource(R.string.general_search)) },
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(16.dp),
                         leadingIcon = {
                             Icon(
-                                imageVector = Icons.Default.Search,contentDescription = "Search Icon"
+                                imageVector = Icons.Default.Search,contentDescription = stringResource(
+                                    R.string.search_icon
+                                )
                             )
                         },
                         trailingIcon = {
@@ -90,7 +94,7 @@ fun CatBreedScreen(viewModel: CatBreedsViewModel, navController: NavController, 
                                 IconButton(onClick = { searchText = "" }) {
                                     Icon(
                                         imageVector = Icons.Filled.Clear,
-                                        contentDescription = "Clear Icon"
+                                        contentDescription = stringResource(R.string.clear_icon)
                                     )
                                 }
                             }
@@ -133,7 +137,7 @@ fun CatBreedScreen(viewModel: CatBreedsViewModel, navController: NavController, 
             }
             is States.Error -> {
                 Text(
-                    text = "Error: ${breedsDetailsState.message}",
+                    text = stringResource(R.string.error_with_description, "" + breedsDetailsState.message),
                     color = Color.Red,
                     modifier = Modifier.align(Alignment.CenterHorizontally)
                 )
@@ -185,7 +189,7 @@ fun CatBreedItem(
                     if (favouritesViewModel.favourites.value.any { it.id == breedDetails.id })
                         Icon(
                             Icons.Outlined.Favorite,
-                            contentDescription = "fav icon outlined",
+                            contentDescription = stringResource(R.string.favourite_icon_outlined),
                             modifier = Modifier
                                 .align(Alignment.End)
                                 .padding(6.dp)
@@ -193,7 +197,7 @@ fun CatBreedItem(
                     else
                         Icon(
                             Icons.Default.FavoriteBorder,
-                            contentDescription = "fav icon outlined",
+                            contentDescription = stringResource(R.string.favourite_icon_default),
                             modifier = Modifier
                                 .align(Alignment.End)
                                 .padding(6.dp)
@@ -203,7 +207,7 @@ fun CatBreedItem(
                     if (viewModel.favourites.value.any { it.id == breedDetails.id })
                         Icon(
                             Icons.Outlined.Favorite,
-                            contentDescription = "fav icon outlined",
+                            contentDescription = stringResource(R.string.favourite_icon_outlined),
                             modifier = Modifier
                                 .align(Alignment.End)
                                 .padding(6.dp)
@@ -211,7 +215,7 @@ fun CatBreedItem(
                     else
                         Icon(
                             Icons.Default.FavoriteBorder,
-                            contentDescription = "fav icon outlined",
+                            contentDescription = stringResource(R.string.favourite_icon_default),
                             modifier = Modifier
                                 .align(Alignment.End)
                                 .padding(6.dp)
@@ -219,7 +223,9 @@ fun CatBreedItem(
             }
             GlideImage(
                 model = breedDetails.imagePath,
-                contentDescription = "cat",
+                contentDescription = stringResource(R.string.picture_of_a) + breedDetails.breeds?.get(0)?.name + stringResource(
+                    R.string.cat
+                ),
                 modifier = Modifier
                     .padding(16.dp, 0.dp)
                     .size(100.dp),
@@ -237,7 +243,9 @@ fun CatBreedItem(
             if (favouritesViewModel != null) {
                 breedDetails.breeds?.get(0)?.lifeSpan?.let {
                     Text(
-                        text = "Avg. lifespan: " + it.split('-')[0] + "years",
+                        text = stringResource(R.string.avg_lifespan) + it.split('-')[0] + stringResource(
+                            R.string.years
+                        ),
                         modifier = Modifier
                             .padding(16.dp, 0.dp)
                             .align(Alignment.CenterHorizontally)

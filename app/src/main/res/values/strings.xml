@@ -1,3 +1,20 @@
 <resources>
     <string name="app_name">Cat API Project</string>
+    <string name="unknown_error">Unknown error</string>
+    <string name="server_connection_error">Couldn\'t fetch data from the server</string>
+    <string name="empty_favourites_list">No favourites yet!</string>
+    <string name="empty_data_list">No data to be displayed yet, connect to Internet and try again!</string>
+    <string name="search_icon">Search Icon</string>
+    <string name="general_search">Search</string>
+    <string name="clear_icon">Clear Icon</string>
+    <string name="error_with_description">Error: %1$s</string>
+    <string name="favourite_icon_outlined">Favourite icon outlined</string>
+    <string name="favourite_icon_default">Favourite icon default</string>
+    <string name="picture_of_a">"Picture of a "</string>
+    <string name="cat">" cat"</string>
+    <string name="avg_lifespan">"Avg. lifespan: "</string>
+    <string name="years">years</string>
+    <string name="origin">"Origin: "</string>
+    <string name="temperament">"Temperament: "</string>
+    <string name="back_button">Back Button</string>
 </resources>

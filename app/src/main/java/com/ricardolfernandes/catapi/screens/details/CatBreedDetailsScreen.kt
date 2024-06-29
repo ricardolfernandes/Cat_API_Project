@@ -20,11 +20,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
+import com.ricardolfernandes.catapi.R
 import com.ricardolfernandes.catapi.network.CatBreedsDetailsDTO
 import com.ricardolfernandes.catapi.screens.MyTopAppBar
 
@@ -62,24 +64,26 @@ fun CatBreedDetailsScreen(
             if (favorites.any { it.id == breedDetails?.id })
                 Icon(
                     Icons.Outlined.Favorite,
-                    contentDescription = "fav icon outlined",
+                    contentDescription = stringResource(R.string.favourite_icon_outlined),
                     modifier = Modifier
                         .align(Alignment.End)
-                        .padding(6.dp).size(48.dp)
+                        .padding(6.dp)
+                        .size(48.dp)
                 )
             else
                 Icon(
                     Icons.Default.FavoriteBorder,
-                    contentDescription = "fav icon outlined",
+                    contentDescription = stringResource(R.string.favourite_icon_default),
                     modifier = Modifier
                         .align(Alignment.End)
-                        .padding(6.dp).size(48.dp)
+                        .padding(6.dp)
+                        .size(48.dp)
                 )
             }
 
             GlideImage(
                 model = breedDetails?.imagePath,
-                contentDescription = "cat",
+                contentDescription = stringResource(R.string.picture_of_a) + breedDetails?.breeds?.get(0)?.name + stringResource(R.string.cat),
                 modifier = Modifier
                     .padding(0.dp, 26.dp)
                     .size(200.dp)
@@ -88,9 +92,9 @@ fun CatBreedDetailsScreen(
             )
             breedDetails?.breeds?.get(0)?.let { it.description?.let { it1 -> Text(text = it1, modifier = Modifier.padding(16.dp, 0.dp)) } }
             HorizontalDivider(modifier = Modifier.padding(16.dp))
-            Text(text = "Origin: " + (breedDetails?.breeds?.get(0)?.origin ?: ""), modifier = Modifier.padding(16.dp, 0.dp))
+            Text(text = stringResource(R.string.origin) + (breedDetails?.breeds?.get(0)?.origin ?: ""), modifier = Modifier.padding(16.dp, 0.dp))
             HorizontalDivider(modifier = Modifier.padding(16.dp))
-            Text(text = "Temperament: ", modifier = Modifier.padding(16.dp, 0.dp))
+            Text(text = stringResource(R.string.temperament), modifier = Modifier.padding(16.dp, 0.dp))
             var list = breedDetails?.breeds?.get(0)?.temperament?.split(",")
             list?.let {
                 for (item in list)

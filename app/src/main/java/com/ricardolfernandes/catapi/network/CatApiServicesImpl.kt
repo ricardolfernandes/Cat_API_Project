@@ -1,6 +1,7 @@
 package com.ricardolfernandes.catapi.network
 
 import android.content.Context
+import com.ricardolfernandes.catapi.R
 import com.ricardolfernandes.catapi.database.CatBreed
 import com.ricardolfernandes.catapi.database.DBRepoImpl
 import com.ricardolfernandes.catapi.utils.ImageUtils
@@ -39,7 +40,7 @@ class CatApiServicesImpl @Inject constructor(
                     ?.let { dbRepo.insert(it) }
                 emit(States.Success(response.body()))
             } else {
-                emit(States.Error("Couldn't fetch data from the server"))
+                emit(States.Error(context.getString(R.string.server_connection_error)))
             }
         } catch (exception: Exception) {
 
@@ -61,7 +62,7 @@ class CatApiServicesImpl @Inject constructor(
                 )
                 emit(States.Success(mappedDetails))
             } else {
-                emit(States.Error(exception.message ?: "Unknown error"))
+                emit(States.Error(exception.message ?: context.getString(R.string.unknown_error)))
             }
         }
     }
@@ -101,7 +102,7 @@ class CatApiServicesImpl @Inject constructor(
                 }
                 emit(States.Success(fetchedDetailsList))
             } else {
-                emit(States.Error("Couldn't fetch data from the server"))
+                emit(States.Error(context.getString(R.string.server_connection_error)))
             }
         } catch (exception: Exception) {
             val localBreeds = dbRepo.getAllCatBreeds().firstOrNull()
@@ -124,7 +125,7 @@ class CatApiServicesImpl @Inject constructor(
                 }
                 emit(States.Success(mappedDetailsList))
             } else {
-                emit(States.Error(exception.message ?: "Unknown error"))
+                emit(States.Error(exception.message ?: context.getString(R.string.unknown_error)))
             }
         }
     }

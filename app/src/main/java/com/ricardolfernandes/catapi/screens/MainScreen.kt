@@ -15,9 +15,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
+import com.ricardolfernandes.catapi.R
 import com.ricardolfernandes.catapi.navigation.BottomNavigationBar
 import com.ricardolfernandes.catapi.navigation.NavigationItem
 import com.ricardolfernandes.catapi.navigation.NavigationRoutes
@@ -74,7 +76,7 @@ fun MyTopAppBar(
                 IconButton(onClick = onBackClick) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Back"
+                        contentDescription = stringResource(R.string.back_button)
                     )
                 }
             }

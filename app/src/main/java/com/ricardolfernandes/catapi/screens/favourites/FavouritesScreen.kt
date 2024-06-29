@@ -13,8 +13,10 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.ricardolfernandes.catapi.R
 import com.ricardolfernandes.catapi.network.CatBreedD
 import com.ricardolfernandes.catapi.network.CatBreedsDetailsDTO
 import com.ricardolfernandes.catapi.screens.breeds.CatBreedItem
@@ -29,7 +31,7 @@ fun FavouritesScreen(viewModel: FavouritesViewModel, navController: NavControlle
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text("No favourites yet!", style = MaterialTheme.typography.headlineSmall)
+            Text(stringResource(R.string.empty_favourites_list), style = MaterialTheme.typography.headlineSmall)
         }
     } else {
         LazyVerticalGrid(

@@ -19,7 +19,7 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 class AppModules {
-    val API_BASE_URL = "https://api.thecatapi.com/v1/"
+    private val API_BASE_URL = "https://api.thecatapi.com/v1/"
 
     @Provides
     fun provideRetrofit(): Retrofit {
