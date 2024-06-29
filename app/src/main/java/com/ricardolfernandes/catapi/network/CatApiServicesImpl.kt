@@ -88,7 +88,7 @@ class CatApiServicesImpl @Inject constructor(
         emit(States.Loading())
 
         try {
-            val response = catApiServices.getCatBreedsList(pageLimit, pageNumber, 1).awaitResponse()
+            val response = catApiServices.getCatBreedsList(pageLimit, pageNumber, 1, "ASC").awaitResponse()
             if(response.isSuccessful) {
                 val networkBreeds = response.body() ?: emptyList()
                 val fetchedDetailsList = mutableListOf<CatBreedsDetailsDTO>()

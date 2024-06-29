@@ -1,13 +1,15 @@
 package com.ricardolfernandes.catapi.screens.breeds
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.FavoriteBorder
@@ -17,6 +19,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -47,8 +50,11 @@ import com.ricardolfernandes.catapi.utils.States
 fun CatBreedScreen(viewModel: CatBreedsViewModel, navController: NavController, modifier: Modifier) {
     var searchText by remember { mutableStateOf("") }
     val favourites by viewModel.favourites.collectAsState()
-
     val breedsDetailsState by viewModel.breedsDetailsState.collectAsState()
+    val isLoadingMore by viewModel.isLoadingMore.collectAsState()
+    var shouldLoadMore by remember { mutableStateOf(true) }
+
+
     Column(modifier = modifier.fillMaxSize()) {
         when (breedsDetailsState) {
             is States.Loading -> {
@@ -56,37 +62,72 @@ fun CatBreedScreen(viewModel: CatBreedsViewModel, navController: NavController, 
             }
             is States.Success -> {
                 val breedsDetails = breedsDetailsState.data ?:emptyList()
-                OutlinedTextField(
-                    value = searchText,
-                    onValueChange = {
-                        searchText = it
-                    },
-                    label = { Text("Search") },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    leadingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.Search,contentDescription = "Search Icon"
-                        )
-                    },
-                    trailingIcon = {
-                        if (searchText.isNotBlank()) {
-                            IconButton(onClick = { searchText = "" }) {
-                                Icon(
-                                    imageVector = Icons.Filled.Clear,
-                                    contentDescription = "Clear Icon"
-                                )
+                if(breedsDetails.isEmpty()) {
+                    Column(
+                        modifier = Modifier.fillMaxSize(),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text("No data to be displayed yet, connect to Internet and try again!", style = MaterialTheme.typography.headlineSmall)
+                    }
+                } else {
+                    OutlinedTextField(
+                        value = searchText,
+                        onValueChange = {
+                            searchText = it
+                        },
+                        label = { Text("Search") },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.Search,contentDescription = "Search Icon"
+                            )
+                        },
+                        trailingIcon = {
+                            if (searchText.isNotBlank()) {
+                                IconButton(onClick = { searchText = "" }) {
+                                    Icon(
+                                        imageVector = Icons.Filled.Clear,
+                                        contentDescription = "Clear Icon"
+                                    )
+                                }
                             }
                         }
+                    )
+
+                    val filteredBreeds = breedsDetails.filter {
+                        if (searchText.isNotEmpty()) {
+                            it.breeds?.get(0)?.name?.contains(searchText, ignoreCase = true) == true
+                        } else {
+                            true
+                        }
                     }
-                )
-                LazyVerticalGrid(
-                    columns = GridCells.Adaptive(minSize = 128.dp),
-                    modifier = modifier.fillMaxSize()
-                ) {
-                    items(breedsDetails.filter { if(searchText.isNotEmpty()) ( it.breeds?.get(0)?.name?.contains(searchText, ignoreCase = true) == true) else true }) { breedsDetails ->
-                        CatBreedItem(breedsDetails, modifier, navController, viewModel, null,favourites)
+
+                    LazyVerticalGrid(
+                        columns = GridCells.Adaptive(minSize = 128.dp),
+                        modifier = modifier.fillMaxSize()
+                    ) {
+                        itemsIndexed(filteredBreeds) { index, breedsDetails ->
+                            CatBreedItem(breedsDetails, modifier, navController, viewModel, null,favourites)
+                            if (breedsDetailsState is States.Success &&
+                                !viewModel.isLastPage &&
+                                !isLoadingMore &&
+                                index == filteredBreeds.lastIndex) {
+                                shouldLoadMore = true
+                            }
+                        }
+
+                        item {
+                            if (isLoadingMore) {
+                                CircularProgressIndicator(modifier = Modifier
+                                    .fillMaxWidth()
+                                    .wrapContentWidth(Alignment.CenterHorizontally)
+                                )
+
+                            }
+                        }
                     }
                 }
             }
@@ -99,9 +140,12 @@ fun CatBreedScreen(viewModel: CatBreedsViewModel, navController: NavController, 
             }
         }
     }
-    LaunchedEffect(Unit) {
+    LaunchedEffect(shouldLoadMore) {
+        if (shouldLoadMore) {
+            viewModel.getCatBreeds()
+            shouldLoadMore = false
+        }
         viewModel.getFavourites()
-        viewModel.getCatBreeds()
     }
 }
 

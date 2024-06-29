@@ -27,10 +27,44 @@ class CatBreedsViewModel @Inject constructor(
     private val _breedsDetailsState = MutableStateFlow<States<List<CatBreedsDetailsDTO>>>(States.Loading())
     val breedsDetailsState: StateFlow<States<List<CatBreedsDetailsDTO>>> = _breedsDetailsState.asStateFlow()
 
+    private val _isLoadingMore = MutableStateFlow(false)
+    val isLoadingMore: StateFlow<Boolean> = _isLoadingMore.asStateFlow()
+
+    private var currentPage = 1
+    var isLastPage = false
+
     fun getCatBreeds() {
         viewModelScope.launch {
-            impl.getCatBreedsWithDetails(10, 1).collect { state ->
-                _breedsDetailsState.value = state
+            if (!isLastPage && !_isLoadingMore.value) {
+                _isLoadingMore.value = true
+                impl.getCatBreedsWithDetails(10, currentPage).collect { state ->
+                    when(state) {
+                        is States.Success -> {
+                            val newBreeds = state.data ?: emptyList()
+                            if (newBreeds.isEmpty()) {
+                                isLastPage = true
+                                _breedsDetailsState.value = States.Success(newBreeds.toList())
+                                _isLoadingMore.value = false
+                            } else {
+                                val currentBreeds = _breedsDetailsState.value.data?.toMutableList() ?: mutableListOf()
+                                currentBreeds.addAll(newBreeds)
+                                _breedsDetailsState.value = States.Success(currentBreeds.toList())
+                                currentPage++
+                                _isLoadingMore.value = false
+                            }
+                        }
+                        is States.Error -> {
+                            _breedsDetailsState.value = state
+                            _isLoadingMore.value = false
+                        }
+                        is States.Loading -> {
+                            if (currentPage == 1) {
+                                _breedsDetailsState.value = state
+                            }
+                        }
+                    }
+
+                }
             }
         }
     }

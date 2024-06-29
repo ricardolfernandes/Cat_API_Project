@@ -10,7 +10,8 @@ interface CatApiServices {
     fun getCatBreedsList(
         @Query("limit") pageLimit: Int,
         @Query("page") pageNumber: Int,
-        @Query("has_breeds") hasBreeds: Int
+        @Query("has_breeds") hasBreeds: Int,
+        @Query("order") order: String
     ): Call<List<CatBreedDTO>>
 
     @GET("images/{id}")
