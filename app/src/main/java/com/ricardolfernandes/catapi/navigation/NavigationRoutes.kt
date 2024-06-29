@@ -15,6 +15,7 @@ import com.ricardolfernandes.catapi.network.CatBreedsDetailsDTO
 import com.ricardolfernandes.catapi.screens.breeds.CatBreedScreen
 import com.ricardolfernandes.catapi.screens.breeds.CatBreedsViewModel
 import com.ricardolfernandes.catapi.screens.details.CatBreedDetailsScreen
+import com.ricardolfernandes.catapi.screens.details.CatBreedDetailsViewModel
 import com.ricardolfernandes.catapi.screens.favourites.FavouritesScreen
 import com.ricardolfernandes.catapi.screens.favourites.FavouritesViewModel
 
@@ -34,7 +35,8 @@ fun NavigationRoutes(navController: NavHostController) {
         ) { backStackEntry ->
             val catBreedDetails = backStackEntry.arguments?.getString("details")
             val catBreedDetailsObject = Gson().fromJson(catBreedDetails, CatBreedsDetailsDTO::class.java)
-            CatBreedDetailsScreen(catBreedDetailsObject, navController)
+            val viewModel: CatBreedDetailsViewModel = hiltViewModel()
+            CatBreedDetailsScreen(viewModel, catBreedDetailsObject, navController)
         }
         composable(NavigationItem.Favourites.route) {
             val viewModel: FavouritesViewModel = hiltViewModel()

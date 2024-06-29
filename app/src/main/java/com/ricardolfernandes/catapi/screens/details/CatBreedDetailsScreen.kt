@@ -7,12 +7,16 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.outlined.Favorite
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
@@ -21,12 +25,18 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
+import com.ricardolfernandes.catapi.database.CatBreed
 import com.ricardolfernandes.catapi.network.CatBreedsDetailsDTO
 import com.ricardolfernandes.catapi.screens.MyTopAppBar
 
 @OptIn(ExperimentalGlideComposeApi::class)
 @Composable
-fun CatBreedDetailsScreen(breedDetails: CatBreedsDetailsDTO?, navController: NavController) {
+fun CatBreedDetailsScreen(
+    viewModel: CatBreedDetailsViewModel,
+    breedDetails: CatBreedsDetailsDTO?,
+    navController: NavController
+) {
+    val favorites by viewModel.favourites.collectAsState()
     Scaffold(
         topBar = {
             breedDetails?.breeds?.get(0)?.name?.let {
@@ -44,14 +54,50 @@ fun CatBreedDetailsScreen(breedDetails: CatBreedsDetailsDTO?, navController: Nav
                 .padding(innerPadding)
                 .verticalScroll(rememberScrollState())
         ) {
-            Icon(
-                Icons.Outlined.Favorite,
-                contentDescription = "fav icon outlined",
-                modifier = Modifier
-                    .padding(6.dp)
-                    .size(48.dp)
-                    .align(Alignment.End)
-            )
+            IconButton(onClick = {
+                if (favorites.any { it.id == breedDetails?.id })
+                    viewModel.removeFromFavorites(
+                        CatBreed(
+                            breedDetails?.id!!,
+                            breedDetails.breeds?.get(0)?.name,
+                            breedDetails.breeds?.get(0)?.origin,
+                            breedDetails.breeds?.get(0)?.temperament,
+                            breedDetails.breeds?.get(0)?.lifeSpan,
+                            breedDetails.breeds?.get(0)?.description,
+                            breedDetails.url
+                        )
+                    )
+                else
+                    viewModel.addToFavorites(
+                        CatBreed(
+                            breedDetails?.id!!,
+                            breedDetails.breeds?.get(0)?.name,
+                            breedDetails.breeds?.get(0)?.origin,
+                            breedDetails.breeds?.get(0)?.temperament,
+                            breedDetails.breeds?.get(0)?.lifeSpan,
+                            breedDetails.breeds?.get(0)?.description,
+                            breedDetails.url
+                        )
+                    )
+            }, modifier = Modifier.align(Alignment.End)) {
+            if (favorites.any { it.id == breedDetails?.id })
+                Icon(
+                    Icons.Outlined.Favorite,
+                    contentDescription = "fav icon outlined",
+                    modifier = Modifier
+                        .align(Alignment.End)
+                        .padding(6.dp).size(48.dp)
+                )
+            else
+                Icon(
+                    Icons.Default.FavoriteBorder,
+                    contentDescription = "fav icon outlined",
+                    modifier = Modifier
+                        .align(Alignment.End)
+                        .padding(6.dp).size(48.dp)
+                )
+            }
+
             GlideImage(
                 model = breedDetails?.url,
                 contentDescription = "cat",
