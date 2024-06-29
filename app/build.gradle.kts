@@ -73,13 +73,13 @@ dependencies {
     implementation(libs.retrofit)
     implementation (libs.converter.gson)
     implementation(libs.androidx.room.runtime)
-    annotationProcessor(libs.androidx.room.compiler)
+    kapt(libs.androidx.room.compiler)
     implementation(libs.androidx.room.ktx)
     implementation(libs.hilt.android)
     kapt(libs.hilt.android.compiler)
     implementation(libs.androidx.hilt.navigation.compose)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
-
+    implementation("androidx.room:room-common:2.6.1")
 }
 // Allow references to generated code
 kapt {

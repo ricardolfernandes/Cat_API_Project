@@ -11,8 +11,8 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 
-@Module
 @InstallIn(SingletonComponent::class)
+@Module
 object DatabaseModule {
 
     @Provides
@@ -21,7 +21,7 @@ object DatabaseModule {
         return Room.databaseBuilder(
             appContext,
             AppDatabase::class.java,
-            "your_database_name"
+            "cat_breeds_database"
         ).build()
     }
 
