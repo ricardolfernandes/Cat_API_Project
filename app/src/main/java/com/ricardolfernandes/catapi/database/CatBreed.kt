@@ -12,6 +12,7 @@ class CatBreed(
     val temperament: String?,
     val life_span: String?,
     val description: String?,
-    val url: String?
-
+    val url: String?,
+    var isFavourite: Boolean,
+    val imagePath: String?
 )

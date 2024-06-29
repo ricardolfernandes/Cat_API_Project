@@ -22,6 +22,9 @@ interface CatBreedDao {
     @Query("SELECT * FROM catbreed")
     fun getAllCatBreeds(): Flow<List<CatBreed>>
 
+    @Query("SELECT * FROM catbreed WHERE isFavourite = 1")
+    fun getAllFavouritesCatBreeds(): Flow<List<CatBreed>>
+
     @Query("SELECT * FROM catbreed WHERE id = :id")
     fun getCatBreedById(id: String): Flow<CatBreed>
 

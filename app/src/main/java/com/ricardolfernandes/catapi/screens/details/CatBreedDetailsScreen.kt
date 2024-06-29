@@ -25,7 +25,6 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
-import com.ricardolfernandes.catapi.database.CatBreed
 import com.ricardolfernandes.catapi.network.CatBreedsDetailsDTO
 import com.ricardolfernandes.catapi.screens.MyTopAppBar
 
@@ -56,29 +55,9 @@ fun CatBreedDetailsScreen(
         ) {
             IconButton(onClick = {
                 if (favorites.any { it.id == breedDetails?.id })
-                    viewModel.removeFromFavorites(
-                        CatBreed(
-                            breedDetails?.id!!,
-                            breedDetails.breeds?.get(0)?.name,
-                            breedDetails.breeds?.get(0)?.origin,
-                            breedDetails.breeds?.get(0)?.temperament,
-                            breedDetails.breeds?.get(0)?.lifeSpan,
-                            breedDetails.breeds?.get(0)?.description,
-                            breedDetails.url
-                        )
-                    )
+                    viewModel.removeFromFavorites(breedDetails?.id!!)
                 else
-                    viewModel.addToFavorites(
-                        CatBreed(
-                            breedDetails?.id!!,
-                            breedDetails.breeds?.get(0)?.name,
-                            breedDetails.breeds?.get(0)?.origin,
-                            breedDetails.breeds?.get(0)?.temperament,
-                            breedDetails.breeds?.get(0)?.lifeSpan,
-                            breedDetails.breeds?.get(0)?.description,
-                            breedDetails.url
-                        )
-                    )
+                    viewModel.addToFavorites(breedDetails?.id!!)
             }, modifier = Modifier.align(Alignment.End)) {
             if (favorites.any { it.id == breedDetails?.id })
                 Icon(
@@ -99,7 +78,7 @@ fun CatBreedDetailsScreen(
             }
 
             GlideImage(
-                model = breedDetails?.url,
+                model = breedDetails?.imagePath,
                 contentDescription = "cat",
                 modifier = Modifier
                     .padding(0.dp, 26.dp)

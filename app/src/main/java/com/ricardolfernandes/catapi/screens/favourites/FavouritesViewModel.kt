@@ -8,6 +8,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -22,22 +23,30 @@ class FavouritesViewModel @Inject constructor(private val favouritesRepository: 
 
     private fun getFavourites() {
         viewModelScope.launch {
-            favouritesRepository.getAllCatBreeds().collect {
+            favouritesRepository.getAllFavouritesCatBreeds().collect {
                 _favourites.value = it
             }
 
         }
     }
 
-    fun addToFavorites(catBreed: CatBreed) {
+    fun addToFavorites(id: String) {
         viewModelScope.launch {
-            favouritesRepository.insert(catBreed)
+            val catBreed = favouritesRepository.getCatBreedById(id).firstOrNull()
+            if (catBreed != null) {
+                catBreed.isFavourite = true
+                favouritesRepository.update(catBreed)
+            }
         }
     }
 
-    fun removeFromFavorites(catBreed: CatBreed) {
+    fun removeFromFavorites(id: String) {
         viewModelScope.launch {
-            favouritesRepository.delete(catBreed)
+            val catBreed = favouritesRepository.getCatBreedById(id).firstOrNull()
+            if (catBreed != null) {
+                catBreed.isFavourite = false
+                favouritesRepository.update(catBreed)
+            }
         }
     }
 

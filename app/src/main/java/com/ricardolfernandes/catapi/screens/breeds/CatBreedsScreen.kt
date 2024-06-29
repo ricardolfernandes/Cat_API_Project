@@ -14,6 +14,7 @@ import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.Favorite
 import androidx.compose.material3.Card
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
@@ -22,11 +23,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -38,45 +41,61 @@ import com.ricardolfernandes.catapi.database.CatBreed
 import com.ricardolfernandes.catapi.navigation.NavigationItem
 import com.ricardolfernandes.catapi.network.CatBreedsDetailsDTO
 import com.ricardolfernandes.catapi.screens.favourites.FavouritesViewModel
+import com.ricardolfernandes.catapi.utils.States
 
 @Composable
 fun CatBreedScreen(viewModel: CatBreedsViewModel, navController: NavController, modifier: Modifier) {
-    val breedsDetails by viewModel.breedsDetails.collectAsState()
     var searchText by remember { mutableStateOf("") }
     val favourites by viewModel.favourites.collectAsState()
 
-    Column {
-        OutlinedTextField(
-            value = searchText,
-            onValueChange = {
-                searchText = it
-            },
-            label = { Text("Search") },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            leadingIcon = {
-                Icon(
-                    imageVector = Icons.Default.Search,contentDescription = "Search Icon"
-                )
-            },
-            trailingIcon = {
-                if (searchText.isNotBlank()) {
-                    IconButton(onClick = { searchText = "" }) {
+    val breedsDetailsState by viewModel.breedsDetailsState.collectAsState()
+    Column(modifier = modifier.fillMaxSize()) {
+        when (breedsDetailsState) {
+            is States.Loading -> {
+                CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
+            }
+            is States.Success -> {
+                val breedsDetails = breedsDetailsState.data ?:emptyList()
+                OutlinedTextField(
+                    value = searchText,
+                    onValueChange = {
+                        searchText = it
+                    },
+                    label = { Text("Search") },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    leadingIcon = {
                         Icon(
-                            imageVector = Icons.Filled.Clear,
-                            contentDescription = "Clear Icon"
+                            imageVector = Icons.Default.Search,contentDescription = "Search Icon"
                         )
+                    },
+                    trailingIcon = {
+                        if (searchText.isNotBlank()) {
+                            IconButton(onClick = { searchText = "" }) {
+                                Icon(
+                                    imageVector = Icons.Filled.Clear,
+                                    contentDescription = "Clear Icon"
+                                )
+                            }
+                        }
+                    }
+                )
+                LazyVerticalGrid(
+                    columns = GridCells.Adaptive(minSize = 128.dp),
+                    modifier = modifier.fillMaxSize()
+                ) {
+                    items(breedsDetails.filter { if(searchText.isNotEmpty()) ( it.breeds?.get(0)?.name?.contains(searchText, ignoreCase = true) == true) else true }) { breedsDetails ->
+                        CatBreedItem(breedsDetails, modifier, navController, viewModel, null,favourites)
                     }
                 }
             }
-        )
-        LazyVerticalGrid(
-            columns = GridCells.Adaptive(minSize = 128.dp),
-            modifier = modifier.fillMaxSize()
-        ) {
-            items(breedsDetails.filter { if(searchText.isNotEmpty()) ( it.breeds?.get(0)?.name?.contains(searchText, ignoreCase = true) == true) else true }) { breedsDetails ->
-                CatBreedItem(breedsDetails, modifier, navController, viewModel, null)
+            is States.Error -> {
+                Text(
+                    text = "Error: ${breedsDetailsState.message}",
+                    color = Color.Red,
+                    modifier = Modifier.align(Alignment.CenterHorizontally)
+                )
             }
         }
     }
@@ -93,87 +112,94 @@ fun CatBreedItem(
     modifier: Modifier,
     navController: NavController,
     viewModel: CatBreedsViewModel?,
-    favouritesViewModel: FavouritesViewModel?
+    favouritesViewModel: FavouritesViewModel?,
+    favourites: List<CatBreed>?
 ) {
-    Card(onClick = {
-        val _breedDetails = Gson().toJson(breedDetails)
-        navController.navigate(NavigationItem.Details.route + "?details=${_breedDetails}")
-    },
-        modifier = modifier.padding(4.dp, 0.dp)) {
-        //TODO -> logic to handle favourites
-        IconButton(onClick = {
-            if(favouritesViewModel != null)
-                if(favouritesViewModel.favourites.value.any { it.id == breedDetails.id })
-                    favouritesViewModel.removeFromFavorites(CatBreed(breedDetails.id!!, breedDetails.breeds?.get(0)?.name, breedDetails.breeds?.get(0)?.origin, breedDetails.breeds?.get(0)?.temperament, breedDetails.breeds?.get(0)?.lifeSpan, breedDetails.breeds?.get(0)?.description, breedDetails.url))
-                else
-                    favouritesViewModel.addToFavorites(CatBreed(breedDetails.id!!, breedDetails.breeds?.get(0)?.name, breedDetails.breeds?.get(0)?.origin, breedDetails.breeds?.get(0)?.temperament, breedDetails.breeds?.get(0)?.lifeSpan, breedDetails.breeds?.get(0)?.description, breedDetails.url))
+    key(breedDetails.id + (favourites?.any { it.id == breedDetails.id } ?: false)) {
+        Card(
+            onClick = {
+                val _breedDetails = Gson().toJson(breedDetails)
+                navController.navigate(NavigationItem.Details.route + "?details=${_breedDetails}")
+            },
+            modifier = modifier.padding(4.dp, 0.dp)
+        ) {
+            IconButton(onClick = {
+                if (favouritesViewModel != null)
+                    if (favouritesViewModel.favourites.value.any { it.id == breedDetails.id })
+                        favouritesViewModel.removeFromFavorites(breedDetails.id!!)
+                    else
+                        favouritesViewModel.addToFavorites(breedDetails.id!!)
 
-            if(viewModel != null)
-                if(viewModel.favourites.value.any { it.id == breedDetails.id })
-                    viewModel.removeFromFavorites(CatBreed(breedDetails.id!!, breedDetails.breeds?.get(0)?.name, breedDetails.breeds?.get(0)?.origin, breedDetails.breeds?.get(0)?.temperament, breedDetails.breeds?.get(0)?.lifeSpan, breedDetails.breeds?.get(0)?.description, breedDetails.url))
-                else
-                    viewModel.addToFavorites(CatBreed(breedDetails.id!!, breedDetails.breeds?.get(0)?.name, breedDetails.breeds?.get(0)?.origin, breedDetails.breeds?.get(0)?.temperament, breedDetails.breeds?.get(0)?.lifeSpan, breedDetails.breeds?.get(0)?.description, breedDetails.url))
+                if (viewModel != null)
+                    if (viewModel.favourites.value.any { it.id == breedDetails.id })
+                        viewModel.removeFromFavorites(breedDetails.id!!)
+                    else
+                        viewModel.addToFavorites(breedDetails.id!!)
 
-        }) {
-            if(favouritesViewModel != null)
-                if(favouritesViewModel.favourites.value.any { it.id == breedDetails.id })
-                    Icon(Icons.Outlined.Favorite, contentDescription = "fav icon outlined", modifier = Modifier
-                        .align(Alignment.End)
-                        .padding(6.dp))
-                else
-                    Icon(
-                        Icons.Default.FavoriteBorder,
-                        contentDescription = "fav icon outlined",
-                        modifier = Modifier
-                            .align(Alignment.End)
-                            .padding(6.dp)
-                    )
+            }) {
+                if (favouritesViewModel != null)
+                    if (favouritesViewModel.favourites.value.any { it.id == breedDetails.id })
+                        Icon(
+                            Icons.Outlined.Favorite,
+                            contentDescription = "fav icon outlined",
+                            modifier = Modifier
+                                .align(Alignment.End)
+                                .padding(6.dp)
+                        )
+                    else
+                        Icon(
+                            Icons.Default.FavoriteBorder,
+                            contentDescription = "fav icon outlined",
+                            modifier = Modifier
+                                .align(Alignment.End)
+                                .padding(6.dp)
+                        )
 
-            if(viewModel != null)
-                if(viewModel.favourites.value.any { it.id == breedDetails.id })
-                    Icon(Icons.Outlined.Favorite, contentDescription = "fav icon outlined", modifier = Modifier
-                        .align(Alignment.End)
-                        .padding(6.dp))
-                else
-                    Icon(
-                        Icons.Default.FavoriteBorder,
-                        contentDescription = "fav icon outlined",
-                        modifier = Modifier
-                            .align(Alignment.End)
-                            .padding(6.dp)
-                    )
-
-
-
-        }
-        GlideImage(
-            model =  breedDetails.url,
-            contentDescription = "cat",
-            modifier = Modifier
-                .padding(16.dp, 0.dp)
-                .size(100.dp),
-            contentScale = ContentScale.Fit
-        )
-        breedDetails.breeds?.get(0)?.name?.let {
-            Text(
-                text = it,
+                if (viewModel != null)
+                    if (viewModel.favourites.value.any { it.id == breedDetails.id })
+                        Icon(
+                            Icons.Outlined.Favorite,
+                            contentDescription = "fav icon outlined",
+                            modifier = Modifier
+                                .align(Alignment.End)
+                                .padding(6.dp)
+                        )
+                    else
+                        Icon(
+                            Icons.Default.FavoriteBorder,
+                            contentDescription = "fav icon outlined",
+                            modifier = Modifier
+                                .align(Alignment.End)
+                                .padding(6.dp)
+                        )
+            }
+            GlideImage(
+                model = breedDetails.imagePath,
+                contentDescription = "cat",
                 modifier = Modifier
                     .padding(16.dp, 0.dp)
-                    .align(Alignment.CenterHorizontally),
-                fontWeight = FontWeight.Bold
+                    .size(100.dp),
+                contentScale = ContentScale.Fit
             )
-        }
-
-        if(favouritesViewModel != null) {
-            breedDetails.breeds?.get(0)?.lifeSpan?.let {
+            breedDetails.breeds?.get(0)?.name?.let {
                 Text(
-                    text = "Avg. lifespan: " + it.split('-')[0] + "years",
+                    text = it,
                     modifier = Modifier
                         .padding(16.dp, 0.dp)
-                        .align(Alignment.CenterHorizontally)
+                        .align(Alignment.CenterHorizontally),
+                    fontWeight = FontWeight.Bold
                 )
             }
+            if (favouritesViewModel != null) {
+                breedDetails.breeds?.get(0)?.lifeSpan?.let {
+                    Text(
+                        text = "Avg. lifespan: " + it.split('-')[0] + "years",
+                        modifier = Modifier
+                            .padding(16.dp, 0.dp)
+                            .align(Alignment.CenterHorizontally)
+                    )
+                }
+            }
         }
-
     }
 }

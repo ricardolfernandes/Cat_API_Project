@@ -6,10 +6,12 @@ import com.ricardolfernandes.catapi.database.CatBreed
 import com.ricardolfernandes.catapi.database.DBRepoImpl
 import com.ricardolfernandes.catapi.network.CatApiServicesImpl
 import com.ricardolfernandes.catapi.network.CatBreedsDetailsDTO
+import com.ricardolfernandes.catapi.utils.States
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -18,47 +20,48 @@ class CatBreedsViewModel @Inject constructor(
     private val impl: CatApiServicesImpl,
     private val favouritesRepository: DBRepoImpl
 ) : ViewModel() {
-    private val _breedsDetails = MutableStateFlow<List<CatBreedsDetailsDTO>>(emptyList())
-    val breedsDetails: StateFlow<List<CatBreedsDetailsDTO>> = _breedsDetails.asStateFlow()
+
     private val _favourites = MutableStateFlow<List<CatBreed>>(emptyList())
     val favourites: StateFlow<List<CatBreed>> = _favourites.asStateFlow()
 
+    private val _breedsDetailsState = MutableStateFlow<States<List<CatBreedsDetailsDTO>>>(States.Loading())
+    val breedsDetailsState: StateFlow<States<List<CatBreedsDetailsDTO>>> = _breedsDetailsState.asStateFlow()
+
     fun getCatBreeds() {
         viewModelScope.launch {
-            val fetchedBreeds = impl.getCatBreedsList(10, 1)
-            for(breed in fetchedBreeds) {
-                getCatBreedDetails(breed.id)
+            impl.getCatBreedsWithDetails(10, 1).collect { state ->
+                _breedsDetailsState.value = state
             }
         }
     }
 
-    private fun getCatBreedDetails(id: String) {
+    fun addToFavorites(id: String) {
         viewModelScope.launch {
-            val fetchedBreedDetails = impl.getCatBreedDetails(id)
-            if (fetchedBreedDetails != null) {
-                _breedsDetails.value += fetchedBreedDetails
+            val catBreed = favouritesRepository.getCatBreedById(id).firstOrNull()
+            if (catBreed != null) {
+                catBreed.isFavourite = true
+                favouritesRepository.update(catBreed)
             }
-        }
-    }
-
-    fun addToFavorites(catBreed: CatBreed) {
-        viewModelScope.launch {
-            favouritesRepository.insert(catBreed)
+            getFavourites()
         }
     }
 
     fun getFavourites() {
         viewModelScope.launch {
-            favouritesRepository.getAllCatBreeds().collect {
+            favouritesRepository.getAllFavouritesCatBreeds().collect {
                 _favourites.value = it
             }
-
         }
     }
 
-    fun removeFromFavorites(catBreed: CatBreed) {
+    fun removeFromFavorites(id: String) {
         viewModelScope.launch {
-            favouritesRepository.delete(catBreed)
+            val catBreed = favouritesRepository.getCatBreedById(id).firstOrNull()
+            if (catBreed != null) {
+                catBreed.isFavourite = false
+                favouritesRepository.update(catBreed)
+            }
+            getFavourites()
         }
     }
 }

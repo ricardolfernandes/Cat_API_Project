@@ -9,10 +9,13 @@ data class CatBreedsDetailsDTO(
     val id: String?,
     @SerializedName("url")
     val url: String?,
+    @SerializedName("image_path")
+    var imagePath: String?,
     @SerializedName("breeds")
     val breeds: List<CatBreedD>?
 ): Parcelable {
     constructor(parcel: Parcel) : this(
+        parcel.readString(),
         parcel.readString(),
         parcel.readString(),
         parcel.createTypedArrayList(CatBreedD)
@@ -22,6 +25,7 @@ data class CatBreedsDetailsDTO(
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         parcel.writeString(id)
         parcel.writeString(url)
+        parcel.writeString(imagePath)
         parcel.writeTypedList(breeds)
     }
 

@@ -1,6 +1,9 @@
 package com.ricardolfernandes.catapi.network
 
+import com.ricardolfernandes.catapi.utils.States
+import kotlinx.coroutines.flow.Flow
+
 interface CatApiRepository {
-    suspend fun getCatBreedsList(pageLimit: Int,pageNumber: Int): List< CatBreedDTO>
-    suspend fun getCatBreedDetails(id: String): CatBreedsDetailsDTO?
+    suspend fun getCatBreedsWithDetails( pageLimit: Int, pageNumber: Int): Flow<States<List<CatBreedsDetailsDTO>>>
+    suspend fun getCatBreedDetails(id: String): Flow<States<CatBreedsDetailsDTO?>>
 }
