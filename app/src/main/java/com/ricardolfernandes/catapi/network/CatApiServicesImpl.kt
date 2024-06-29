@@ -1,10 +1,12 @@
 package com.ricardolfernandes.catapi.network
 
 import retrofit2.awaitResponse
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class CatApiServicesImpl: CatApiRepository {
+@Singleton
+class CatApiServicesImpl @Inject constructor(private val catApiServices: CatApiServices) : CatApiRepository {
 
-    private var catApiServices: CatApiServices = RetrofitInstance.api
 
     override suspend fun getCatBreedsList(
         pageLimit: Int,
