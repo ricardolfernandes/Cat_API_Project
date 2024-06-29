@@ -12,6 +12,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.outlined.Favorite
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -27,6 +28,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
@@ -35,11 +37,13 @@ import com.google.gson.Gson
 import com.ricardolfernandes.catapi.database.CatBreed
 import com.ricardolfernandes.catapi.navigation.NavigationItem
 import com.ricardolfernandes.catapi.network.CatBreedsDetailsDTO
+import com.ricardolfernandes.catapi.screens.favourites.FavouritesViewModel
 
 @Composable
 fun CatBreedScreen(viewModel: CatBreedsViewModel, navController: NavController, modifier: Modifier) {
     val breedsDetails by viewModel.breedsDetails.collectAsState()
     var searchText by remember { mutableStateOf("") }
+    val favourites by viewModel.favourites.collectAsState()
 
     Column {
         OutlinedTextField(
@@ -72,11 +76,12 @@ fun CatBreedScreen(viewModel: CatBreedsViewModel, navController: NavController, 
             modifier = modifier.fillMaxSize()
         ) {
             items(breedsDetails.filter { if(searchText.isNotEmpty()) ( it.breeds?.get(0)?.name?.contains(searchText, ignoreCase = true) == true) else true }) { breedsDetails ->
-                CatBreedItem(breedsDetails, modifier, navController, viewModel)
+                CatBreedItem(breedsDetails, modifier, navController, viewModel, null)
             }
         }
     }
     LaunchedEffect(Unit) {
+        viewModel.getFavourites()
         viewModel.getCatBreeds()
     }
 }
@@ -87,27 +92,59 @@ fun CatBreedItem(
     breedDetails: CatBreedsDetailsDTO,
     modifier: Modifier,
     navController: NavController,
-    viewModel: CatBreedsViewModel
+    viewModel: CatBreedsViewModel?,
+    favouritesViewModel: FavouritesViewModel?
 ) {
     Card(onClick = {
         val _breedDetails = Gson().toJson(breedDetails)
         navController.navigate(NavigationItem.Details.route + "?details=${_breedDetails}")
     },
         modifier = modifier.padding(4.dp, 0.dp)) {
-//        Icon(Icons.Outlined.Favorite, contentDescription = "fav icon outlined", modifier = Modifier
-//            .align(Alignment.End)
-//            .padding(6.dp))
         //TODO -> logic to handle favourites
         IconButton(onClick = {
-            viewModel.addToFavorites(CatBreed(breedDetails.id!!, breedDetails.breeds?.get(0)?.name, breedDetails.breeds?.get(0)?.origin, breedDetails.breeds?.get(0)?.temperament, breedDetails.breeds?.get(0)?.lifeSpan, breedDetails.breeds?.get(0)?.description, breedDetails.url))
+            if(favouritesViewModel != null)
+                if(favouritesViewModel.favourites.value.any { it.id == breedDetails.id })
+                    favouritesViewModel.removeFromFavorites(CatBreed(breedDetails.id!!, breedDetails.breeds?.get(0)?.name, breedDetails.breeds?.get(0)?.origin, breedDetails.breeds?.get(0)?.temperament, breedDetails.breeds?.get(0)?.lifeSpan, breedDetails.breeds?.get(0)?.description, breedDetails.url))
+                else
+                    favouritesViewModel.addToFavorites(CatBreed(breedDetails.id!!, breedDetails.breeds?.get(0)?.name, breedDetails.breeds?.get(0)?.origin, breedDetails.breeds?.get(0)?.temperament, breedDetails.breeds?.get(0)?.lifeSpan, breedDetails.breeds?.get(0)?.description, breedDetails.url))
+
+            if(viewModel != null)
+                if(viewModel.favourites.value.any { it.id == breedDetails.id })
+                    viewModel.removeFromFavorites(CatBreed(breedDetails.id!!, breedDetails.breeds?.get(0)?.name, breedDetails.breeds?.get(0)?.origin, breedDetails.breeds?.get(0)?.temperament, breedDetails.breeds?.get(0)?.lifeSpan, breedDetails.breeds?.get(0)?.description, breedDetails.url))
+                else
+                    viewModel.addToFavorites(CatBreed(breedDetails.id!!, breedDetails.breeds?.get(0)?.name, breedDetails.breeds?.get(0)?.origin, breedDetails.breeds?.get(0)?.temperament, breedDetails.breeds?.get(0)?.lifeSpan, breedDetails.breeds?.get(0)?.description, breedDetails.url))
+
         }) {
-            Icon(
-                Icons.Default.FavoriteBorder,
-                contentDescription = "fav icon outlined",
-                modifier = Modifier
-                    .align(Alignment.End)
-                    .padding(6.dp)
-            )
+            if(favouritesViewModel != null)
+                if(favouritesViewModel.favourites.value.any { it.id == breedDetails.id })
+                    Icon(Icons.Outlined.Favorite, contentDescription = "fav icon outlined", modifier = Modifier
+                        .align(Alignment.End)
+                        .padding(6.dp))
+                else
+                    Icon(
+                        Icons.Default.FavoriteBorder,
+                        contentDescription = "fav icon outlined",
+                        modifier = Modifier
+                            .align(Alignment.End)
+                            .padding(6.dp)
+                    )
+
+            if(viewModel != null)
+                if(viewModel.favourites.value.any { it.id == breedDetails.id })
+                    Icon(Icons.Outlined.Favorite, contentDescription = "fav icon outlined", modifier = Modifier
+                        .align(Alignment.End)
+                        .padding(6.dp))
+                else
+                    Icon(
+                        Icons.Default.FavoriteBorder,
+                        contentDescription = "fav icon outlined",
+                        modifier = Modifier
+                            .align(Alignment.End)
+                            .padding(6.dp)
+                    )
+
+
+
         }
         GlideImage(
             model =  breedDetails.url,
@@ -122,8 +159,20 @@ fun CatBreedItem(
                 text = it,
                 modifier = Modifier
                     .padding(16.dp, 0.dp)
-                    .align(Alignment.CenterHorizontally)
+                    .align(Alignment.CenterHorizontally),
+                fontWeight = FontWeight.Bold
             )
+        }
+
+        if(favouritesViewModel != null) {
+            breedDetails.breeds?.get(0)?.lifeSpan?.let {
+                Text(
+                    text = "Avg. lifespan: " + it.split('-')[0] + "years",
+                    modifier = Modifier
+                        .padding(16.dp, 0.dp)
+                        .align(Alignment.CenterHorizontally)
+                )
+            }
         }
 
     }

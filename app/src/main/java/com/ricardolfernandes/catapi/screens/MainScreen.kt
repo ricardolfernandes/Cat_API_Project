@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.ricardolfernandes.catapi.navigation.BottomNavigationBar
+import com.ricardolfernandes.catapi.navigation.NavigationItem
 import com.ricardolfernandes.catapi.navigation.NavigationRoutes
 
 @Composable
@@ -28,16 +29,16 @@ fun MainScreen(
     val currentRoute = currentRoute(navController)
     Scaffold(
         topBar = {
-            if (currentRoute == "Home" ||currentRoute == "Favourites") {
+            if (currentRoute == NavigationItem.List.route || currentRoute == NavigationItem.Favourites.route) {
                 MyTopAppBar(
-                    title = "Cat Breeds",
+                    title = currentRoute,
                     showBackButton = false,
                     onBackClick = {  }
                 )
             }
         },
         bottomBar = {
-            if (currentRoute == "Home" ||currentRoute == "Favourites") {
+            if (currentRoute == NavigationItem.List.route || currentRoute == NavigationItem.Favourites.route) {
                 BottomAppBar(modifier = Modifier) {
                     BottomNavigationBar(navController = navController)
                 }
